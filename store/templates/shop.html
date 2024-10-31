@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content%}
+
+        <!-- Single Page Header start -->
+        <div class="container-fluid page-header py-5">
+            <h1 class="text-center text-white display-6">Shop</h1>
+            <ol class="breadcrumb justify-content-center mb-0">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item"><a href="#">Pages</a></li>
+                <li class="breadcrumb-item active text-white">Shop</li>
+            </ol>
+        </div>
+        <!-- Single Page Header End -->
+        <div class="container-fluid fruite py-5">
+            <div class="container py-5">
+                <h1 class="mb-4">Fresh fruits shop</h1>
+                <div class="row g-4">
+                    <div class="col-lg-12">
+                        <div class="row g-4">
+                            <div class="col-xl-3">
+                                <div class="input-group w-100 mx-auto d-flex">
+                                    <form method="get" action="{% url 'store:category' slug=category.slug %}" id="search-form">
+                                        <input type="text" name="search" class="form-control p-3" placeholder="Search by product name" value="{{ search_query }}" oninput="this.form.submit()">
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-4">
+                            <div class="col-lg-3">
+                                <div class="row g-4">
+                                    <div class="col-lg-12">
+                                        <div class="mb-3">
+                                            <h4 class="mb-2">Price</h4>
+                                            <form method="get" action="{% url 'store:category' slug=category.slug%}" id="price-filter-form">
+                                                <label for="rangeInput">Filter by Price:</label>
+                                                <input type="range" class="form-range w-100" id="rangeInput" name="rangeInput" min="0" max="5" value="0" oninput="amount.value=rangeInput.value; this.form.submit()">
+                                                <output id="amount" name="amount" for="rangeInput">0</output>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <div class="mb-3">
+                                            <h4>Categories</h4>
+                                            <form method="get" action="{% url 'store:category' slug=category.slug %}">
+                                                <p>Filter by Category:</p>
+                                                <input type="radio" class="me-2" id="category-all" name="category" value="" 
+                                                    {% if not selected_category %}checked{% endif %} onchange="this.form.submit()">
+                                                <label for="category-all">All Categories</label><br>
+                                            
+                                                {% for category in categories %}
+                                                    <input type="radio" class="me-2" id="category-{{ category.id }}" name="category" value="{{ category.id }}" 
+                                                        {% if category.id|stringformat:"s" == selected_category %}checked{% endif %} onchange="this.form.submit()">
+                                                    <label for="category-{{ category.id }}">{{ category.name }}</label><br>
+                                                {% endfor %}
+                                                <input type="hidden" name="search" value="{{ search_query }}">
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-12">
+                                        <h4 class="mb-3">Filter by Tag</h4>
+                                        <form method="get" action="{% url 'store:category' slug=category.slug %}">
+                                            <input type="radio" class="me-2" id="tag-all" name="tag" value="" 
+                                                {% if not selected_tag %}checked{% endif %} onchange="this.form.submit()">
+                                            <label for="tag-all">All Tags</label><br>
+                                            
+                                            {% for tag in all_tags %}
+                                                <div class="mb-2">
+                                                    <input type="radio" class="me-2" id="tag-{{ tag.id }}" 
+                                                        name="tag" value="{{ tag.name }}" onchange="this.form.submit()" 
+                                                        {% if selected_tag == tag.name %}checked{% endif %}>
+                                                    <label for="tag-{{ tag.id }}">{{ tag.name }}</label>
+                                                </div>
+                                            {% endfor %}
+                                            <input type="hidden" name="search" value="{{ search_query }}">
+                                            <input type="hidden" name="category" value="{{ selected_category }}">
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-9">
+                                <div class="row g-4 justify-content-center">
+                                    {% for product in products %}
+                                        <div class="col-md-6 col-lg-6 col-xl-4">
+                                            <div class="rounded position-relative fruite-item">
+                                                {% if product.image %}
+                                                    <div class="fruite-img">
+                                                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="max-width: 150px;">
+                                                    </div>
+                                                {% endif %}
+                                                
+                                                <div class="text-white bg-secondary px-3 py-1 rounded position-absolute" style="top: 10px; left: 10px;">{{ product.tag.all|join:", " }}</div>
+                                                <div class="p-4 border border-secondary border-top-0 rounded-bottom">
+                                                    <h4>{{ product.name }}</h4>
+                                                    <div class="d-flex justify-content-between flex-lg-wrap">
+                                                        <p class="text-dark fs-5 fw-bold mb-0">{{ product.price }} GEL / kg</p>
+                                                        <form action="{% url 'order:add_to_cart' product.id %}" method="post">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="product_id" value="{{ product.id }}">
+                                                            <label for="quantity_{{ product.id }}">kg :</label>
+                                                            <input type="number" id="quantity_{{ product.id }}" name="quantity" min="1" max="{{ product.quantity }}" value="1">
+                                                            <button type="submit" class="btn border border-secondary rounded-pill px-3 text-primary">
+                                                                <i class="fa fa-shopping-bag me-2 text-primary"></i> Add to cart
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                    <div class="col-12">
+                                        <div class="pagination d-flex justify-content-center mt-5">
+                                            {% if products.has_previous %}
+                                                <a href="?page={{ products.previous_page_number }}&search={{ search_query }}&category={{ selected_category }}" class="rounded">&laquo;</a>
+                                            {% endif %}
+                                    
+                                            {% for page_num in products.paginator.page_range %}
+                                                {% if page_num == products.number %}
+                                                    <a href="#" class="active rounded">{{ page_num }}</a>
+                                                {% else %}
+                                                    <a href="?page={{ page_num }}&search={{ search_query }}&category={{ selected_category }}" class="rounded">{{ page_num }}</a>
+                                                {% endif %}
+                                            {% endfor %}
+                                    
+                                            {% if products.has_next %}
+                                                <a href="?page={{ products.next_page_number }}&search={{ search_query }}&category={{ selected_category }}" class="rounded">&raquo;</a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fruits Shop Start-->
+        
+        
+{% endblock content %}
+        

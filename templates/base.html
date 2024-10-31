@@ -1,0 +1,32 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+    {% include 'head.html' %}
+
+    <body>
+
+        {%include 'spinner.html'%}
+
+
+        {% include 'navbar.html'%}
+
+
+        {% include 'modal_search.html'%}
+
+
+        {% block content %}
+
+        {% endblock content%}
+
+        {% include 'footer.html'%}
+
+
+        {% include 'copyright.html'%}
+
+
+        {% include 'js.html' %}
+    <body>
+
+<html>
